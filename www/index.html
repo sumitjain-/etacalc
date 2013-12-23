@@ -41,7 +41,7 @@
                 <h1>Cubito</h1>
             </div>
             <div data-role="content" class="content ui-content">
-                <form method="post" action="http://localhost:8888/cubito/sim/user_input" id="main_form" onsubmit="return form_submit()">
+                <form method="post" action="cubito/sim/user_input" id="main_form" onsubmit="return form_submit()">
                     <input type="text" placeholder="Boarding point" id="bp" name="bp">
                     <input type="text" placeholder="Dropping point" id="dp" name="dp">
                     <input type="submit" value="Submit">
@@ -49,8 +49,17 @@
                 <p id="response"></p>
             </div>
         </div>
-        <div data-role="page">
-            
+        <div data-role="page" id="response_page" data-transition="flip">
+            <div data-role="header" class="header">
+                <a href="" data-rel="back">Back</a>
+                <h1>Cubito</h1>
+            </div>
+            <div data-role="content" class="content ui-content">
+            <h1>These routes suit your search</h1>
+                <ul id="route_list" data-role="listview">
+                    
+                </ul>
+            </div>
         </div>
         <script type="text/javascript" src="js/config.js"></script>
         <!-- <script type="text/javascript" src="phonegap.js"></script> -->
@@ -61,36 +70,42 @@
         <script type="text/javascript">
             app.initialize();
             $(function(){
-        $('#bp').autocomplete({
-            source: 'http://localhost:8888/cubito/sim/stops_array_bp',
-            minLength: 1
-        });
+                $('#bp').autocomplete({
+                    source: SERVER_URL+'cubito/sim/stops_array_bp',
+                    minLength: 1
+                });
 
-        $('#dp').autocomplete({
-            source: 'http://localhost:8888/cubito/sim/stops_array_bp',
-            minLength: 1
-        });
+                $('#dp').autocomplete({
+                    source: SERVER_URL+'cubito/sim/stops_array_bp',
+                    minLength: 1
+                });
 
-    });
+            });
             function form_submit(){
+                var route_list = $("#route_list");
                 var form = $('#main_form'),
-                    form_data = form.serialize,
-                    form_url = form.attr('action'),
+                    form_data = form.serializeArray(),
+                    form_url = SERVER_URL+form.attr('action'),
                     form_method = form.attr('method'),
                     response_msg = $('#response');
-
+                    console.log("bp: "+$('#bp').val());
                     $.ajax({
                         url: form_url,
                         type: form_method,
                         data: form_data,
                         success:function(data){
-                            response_msg.html(data);
+                            for (var route_id in data){
+                                route_list.empty();
+                                route_list.append("<li>Route "+route_id+": The bus is "+data[route_id]+"m away</li>");
+                            }
+                            $.mobile.changePage("#response_page");
+                            route_list.listview("refresh");
                         },
-                        error:function(){
+                        error:function(xhr, errorType, exception){
                             response_msg.html("No response");
                         }
                     });
-
+                    
                     return false;
             }
         </script>
